@@ -1,12 +1,21 @@
 #!/bin/bash
 set -euo pipefail
 
+### Effective genome size for Human: 2.7e9
+### Effective genome size for Mouse: 1.87e9
+### Effective genome size for Chicken: 1.2e9
 # ===== CONFIG =====
-GENOME_INDEX="/Data/Austin/workdir/genome/hg38/hg38_bt2/GRCh38"
-GENOME_SIZE=2913022398
+#Genome for alignment
+GENOME_INDEX="/Data/Fjodor/MRE_PROJECT/mouse_genome/mus_grc39/mus_grc39"
+#Calculate genome size
+GENOME_SIZE=2728222451
 THREADS=10
-ORIGINAL_FASTQ_PATH="/Data/Ana/Jackie/ATACAug2025/fastq/"
-SAMPLE_ID="D5_ATAC"
+# the path ANA will send you
+ORIGINAL_FASTQ_PATH="/Data/Fjodor/MRE_PROJECT/osteoblast_atac_seq/functional_exp/fastq_og"
+# your samples id as in SampleSheet
+SAMPLE_ID=("day3_osteo_control_rep1" "day3_osteo_control_rep2" "day3_osteo_rotenone_rep1" "day3_osteo_rotenone_rep2" 
+		"day6_osteo_control_rep1" "day6_osteo_control_rep2" "day6_osteo_rotenone_rep1" "day6_osteo_rotenone_rep2" 
+		"pgo91_control_rep1" "pgo91_control_rep2")
 
 # ===== PATHS =====
 FASTQ_DIR="fastq"
@@ -21,8 +30,8 @@ mkdir -p "$FASTQ_DIR" "$TRIM_DIR" "$BAM_DIR" "$BW_DIR" "$PEAKS_DIR" \
          "$STATS_DIR/fastqc_raw" "$STATS_DIR/fastqc_trimmed"
 
 # ===== SYM LINK =====
-for file in $(ls $ORIGINAL_FASTQ_PATH/${SAMPLE_ID}*.fastq.gz);
-	do ln -s $file $FASTQ_DIR/
+for sample in "${SAMPLE_ID[@]}"; do
+	ln -s $ORIGINAL_FASTQ_PATH/${sample}*.fastq.gz $FASTQ_DIR
 done
 
 # Make list of pairs
@@ -86,7 +95,8 @@ for BAMFILE in "$BAM_DIR"/*_nodups.bam; do
         --outFileFormat bigwig \
         --binSize 5 \
         --numberOfProcessors "$THREADS" \
-        --normalizeUsing RPKM \
+        --normalizeUsing RPGC \
+	--effectiveGenomeSize "$GENOME_SIZE" \
         --extendReads
 done
 
