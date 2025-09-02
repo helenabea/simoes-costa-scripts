@@ -107,6 +107,7 @@ for BAMFILE in "$BAM_DIR"/*_nodups.bam; do
         -n "$SAMPLE" \
         -f BAMPE -g "$GENOME_SIZE" \
         -q 0.05 \
+	--nomodel --shift -37 --extsize 73 \
         --call-summits \
         --outdir "$PEAKS_DIR"
 done
