@@ -5,6 +5,8 @@ set -euo pipefail
 GENOME_INDEX="/Data/Austin/workdir/genome/hg38/hg38_bt2/GRCh38"
 GENOME_SIZE=2913022398
 THREADS=10
+ORIGINAL_FASTQ_PATH="/Data/Ana/Jackie/ATACAug2025/fastq/"
+SAMPLE_ID="D5_ATAC"
 
 # ===== PATHS =====
 FASTQ_DIR="fastq"
@@ -15,10 +17,15 @@ PEAKS_DIR="Peaks"
 STATS_DIR="stats"
 
 # ===== PREP =====
-mkdir -p "$TRIM_DIR" "$BAM_DIR" "$BW_DIR" "$PEAKS_DIR" \
+mkdir -p "$FASTQ_DIR" "$TRIM_DIR" "$BAM_DIR" "$BW_DIR" "$PEAKS_DIR" \
          "$STATS_DIR/fastqc_raw" "$STATS_DIR/fastqc_trimmed"
 
-# Criar lista de pares
+# ===== SYM LINK =====
+for file in $(ls $ORIGINAL_FASTQ_PATH/${SAMPLE_ID}*.fastq.gz);
+	do ln -s $file $FASTQ_DIR/
+done
+
+# Make list of pairs
 ls --color=never "$FASTQ_DIR"/*fastq.gz | sort | sed "s|$FASTQ_DIR/||g" | paste -sd';\n' - > "$FASTQ_DIR/filePairs.txt"
 
 # ===== FASTQC (raw data) =====
@@ -50,7 +57,8 @@ while IFS=";" read -r F1 F2; do
         -1 "$TRIM_DIR/trimmed_${F1}" -2 "$TRIM_DIR/trimmed_${F2}" \
         --threads "$THREADS" \
     | samtools view -@ "$THREADS" -F 780 -f 2 -bh - \
-    | samtools sort -@ "$THREADS" -T "${OUT_BAM%.bam}" -o "$OUT_BAM"
+    | samtools sort -@ "$THREADS" -T "${OUT_BAM%.bam}" \
+    | samtools addreplacerg -r "@RG\tID:RG1\tSM:SampleName\tPL:Illumina\tLB:Library.fa" -o "$OUT_BAM" -
 done < "$FASTQ_DIR/filePairs.txt"
 
 # ===== MARK DUPLICATES =====
@@ -67,8 +75,8 @@ done
 for BAMFILE in "$BAM_DIR"/*_dupsMarked.bam; do
     echo "[Samtools rmdup] $BAMFILE"
     samtools view -@ "$THREADS" -F 1804 -f 2 -b "$BAMFILE" \
-    | samtools sort -@ "$THREADS" -o "${BAMFILE/_dupsMarked.bam/_nodups.bam}"
-    samtools index -@ "$THREADS" "${BAMFILE/_dupsMarked.bam/_nodups.bam}"
+	    | samtools sort -@ "$THREADS" -o "${BAMFILE/_dupsMarked.bam/_nodups.bam}"
+    samtools index "${BAMFILE/_dupsMarked.bam/_nodups.bam}"
 done
 
 # ===== BIGWIG =====
