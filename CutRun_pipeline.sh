@@ -1,6 +1,5 @@
 #!/bin/bash
 set -euo pipefail
-source /etc/profile.d/apps.sh
 
 ### Effective genome size for Human: 2.7e9
 ### Effective genome size for Mouse: 1.87e9
@@ -72,7 +71,7 @@ done < "$FASTQ_DIR/filePairs.txt"
 # ===== MARK DUPLICATES =====
 for BAMFILE in "$BAM_DIR"/*.bam; do
     echo "[Picard] $BAMFILE"
-    PICARD MarkDuplicates \
+    picard MarkDuplicates \
         I="$BAMFILE" \
         O="${BAMFILE/.bam/_dupsMarked.bam}" \
         M="${BAMFILE/.bam/_dupsMarkedStats.txt}" \
