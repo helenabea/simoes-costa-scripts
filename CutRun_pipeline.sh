@@ -177,7 +177,7 @@ for BAMFILE in "$BAM_DIR"/*_nodups.bam; do
     echo "[MACS2] $SAMPLE"
     macs2 callpeak -t "$BAMFILE" \
         -n "$SAMPLE" \
-        -f BAM -g "$MACS2_GENOME" \
+        -f BAMPE -g "$MACS2_GENOME" \
         -q 0.05 \
         --call-summits \
         --outdir "$PEAKS_DIR"

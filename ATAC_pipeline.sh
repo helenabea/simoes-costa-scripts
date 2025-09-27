@@ -191,3 +191,4 @@ for f in "$BAM_DIR"/*; do
 done
 
 echo "Pipeline complete!"
+
