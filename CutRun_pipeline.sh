@@ -41,7 +41,7 @@ case "$GENOME" in
     MACS2_GENOME="2.2e9"
     ;;
   *)
-    echo "Error: Unknown genome '$GENOME'. Choose from {galgal6, hg38.p14, mm39}."
+    echo "Error: Unknown genome '$GENOME'. Choose from {galgal6, hg38, mm39}."
     exit 1
     ;;
 esac
@@ -138,7 +138,7 @@ while IFS=";" read -r F1 F2; do
         -r "@RG\tID:${SAMPLE}.${GENOME}\tSM:${SAMPLE}\tLB:${SAMPLE}\tPL:ILLUMINA\tPU:S${SNUM}" \
         -o "$OUT_BAM" -
     set +o pipefail
-done < "$FASTQ_DIR/filePairs.txt"
+done < "$filepairs"
 
 # ===== MARK DUPLICATES =====
 for BAMFILE in "$BAM_DIR"/*.bam; do

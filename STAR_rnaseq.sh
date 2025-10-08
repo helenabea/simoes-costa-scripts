@@ -19,15 +19,15 @@ SAMPLE_ID=("HH4_anterior_ectoderm_RNA_1")
 ## DO NOT CHANGE THIS!
 case "$GENOME" in
   galgal6)
-    GENOME_INDEX="/Data/GENOMES/GallusGallus/galgal6/hisat2_index/galgal6"
+    GENOME_INDEX="/Data/GENOMES/GallusGallus/galgal6/star_index_76bp/"
     ANNOTATION="/Data/GENOMES/GallusGallus/galgal6/galGal6.refGene.gtf"
     ;;
   hg38)
-    GENOME_INDEX="/Data/GENOMES/HomoSapiens/hg38.p14/hisat2_index/hg38.p14"
+    GENOME_INDEX="/Data/GENOMES/HomoSapiens/hg38.p14/star_index/"
     ANNOTATION="/Data/GENOMES/HomoSapiens/hg38.p14/gencode.v49.annotation.gtf"
     ;;
   mm39)
-    GENOME_INDEX="/Data/GENOMES/MusMusculus/mm39/hisat2_index/mm39"
+    GENOME_INDEX="/Data/GENOMES/MusMusculus/mm39/star_index/"
     ANNOTATION="/Data/GENOMES/MusMusculus/mm39/gencode.vM38.annotation.gtf"
     ;;
   *)
@@ -41,10 +41,9 @@ FASTQ_DIR="fastq"
 TRIM_DIR="trimmedFastq"
 BAM_DIR="BAM"
 STATS_DIR="stats"
-COUNTS_DIR="counts"
 
 # ===== TOOL CHECK (fail fast if missing) =====
-for cmd in fastqc cutadapt hisat2 samtools featureCounts; do
+for cmd in fastqc cutadapt STAR samtools; do
     if ! command -v "$cmd" &>/dev/null; then
         echo "ERROR: required command '$cmd' not found in PATH" >&2
         exit 1
@@ -52,7 +51,7 @@ for cmd in fastqc cutadapt hisat2 samtools featureCounts; do
 done
 
 # ===== PREP =====
-mkdir -p "$FASTQ_DIR" "$TRIM_DIR" "$BAM_DIR" "$COUNTS_DIR" \
+mkdir -p "$FASTQ_DIR" "$TRIM_DIR" "$BAM_DIR" \
          "$STATS_DIR/fastqc_raw" "$STATS_DIR/fastqc_trimmed"
 
 # ensure shell globbing of missing files produces empty list instead of literal
@@ -102,38 +101,23 @@ done < "$filepairs"
 echo "[FastQC] Executing in trimmed fastq..."
 fastqc -t "$THREADS" "$TRIM_DIR"/*.fastq* -o "$STATS_DIR/fastqc_trimmed"
 
-# ===== HISAT2 ALIGNMENT =====
+# ===== STAR ALIGNMENT =====
 while IFS=";" read -r F1 F2; do
     sample_name=$(basename "$F1" | sed 's/_R1_.*//')
-    echo "[HISAT2] Aligning $sample_name..."
-    hisat2 \
-        -p "$THREADS" \
-        --phred33 \
-        --rna-strandness R \
-        --dta \
-        --no-unal \
-        -x "$GENOME_INDEX" \
-        -1 "$TRIM_DIR/trimmed_${F1}" \
-        -2 "$TRIM_DIR/trimmed_${F2}" \
-        --summary-file "$STATS_DIR/${sample_name}_hisatSummary.txt" |
-        samtools view -bS -@ "$THREADS" - |
-        samtools sort -@ "$THREADS" -o "$BAM_DIR/${sample_name}.bam" -
-    samtools index -@ "$THREADS" "$BAM_DIR/${sample_name}.bam"
+    echo "[STAR] Aligning $sample_name..."
+    STAR \
+      --runThreadN "$THREADS" \
+      --genomeDir "$GENOME_INDEX" \
+      --readFilesIn "$TRIM_DIR/trimmed_${F1}" "$TRIM_DIR/trimmed_${F2}" \
+      --readFilesCommand zcat \
+      --sjdbGTFfile "$ANNOTATION" \
+      --outSAMtype BAM SortedByCoordinate \
+      --quantMode GeneCounts \
+      --outFileNamePrefix "$BAM_DIR/${sample_name}_"
+    
+    samtools index "$BAM_DIR/${sample_name}_Aligned.sortedByCoord.out.bam"
 done < "$filepairs"
 
-# ===== FEATURE COUNTS =====
-for sample in "$BAM_DIR"/*.bam; do
-    base=$(basename "$sample" .bam)
-    echo "[featureCounts] Counting for $base..."
-    featureCounts \
-        -T "$THREADS" \
-        -t exon \
-        -s 2 \
-        -g gene_id \
-        -a "$ANNOTATION" \
-        -o "$COUNTS_DIR/${base}_featureCounts.txt" \
-        -p "$sample"
-done
 
 # ===== CLEAN INTERMEDIATES =====
 echo "[Cleanup] Removing intermediate files..."
