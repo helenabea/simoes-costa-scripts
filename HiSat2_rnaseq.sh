@@ -20,7 +20,7 @@ SAMPLE_ID=("HH4_anterior_ectoderm_RNA_1")
 case "$GENOME" in
   galgal6)
     GENOME_INDEX="/Data/GENOMES/GallusGallus/galgal6/hisat2_index/galgal6"
-    ANNOTATION="/Data/GENOMES/GallusGallus/galgal6/galGal6.refGene.gtf"
+    ANNOTATION="/Data/GENOMES/GallusGallus/galgal6/galGal6.ncbiRefSeq.gtf"
     ;;
   hg38)
     GENOME_INDEX="/Data/GENOMES/HomoSapiens/hg38.p14/hisat2_index/hg38.p14"
@@ -109,16 +109,16 @@ while IFS=";" read -r F1 F2; do
     hisat2 \
         -p "$THREADS" \
         --phred33 \
-        --rna-strandness R \
+        --rna-strandness RF \
         --dta \
         --no-unal \
         -x "$GENOME_INDEX" \
         -1 "$TRIM_DIR/trimmed_${F1}" \
         -2 "$TRIM_DIR/trimmed_${F2}" \
-        --summary-file "$STATS_DIR/${sample_name}_hisatSummary.txt" |
+        --summary-file "$STATS_DIR/${sample_name}.${GENOME}_hisatSummary.txt" |
         samtools view -bS -@ "$THREADS" - |
-        samtools sort -@ "$THREADS" -o "$BAM_DIR/${sample_name}.bam" -
-    samtools index -@ "$THREADS" "$BAM_DIR/${sample_name}.bam"
+        samtools sort -@ "$THREADS" -o "$BAM_DIR/${sample_name}.${GENOME}.bam" -
+    samtools index -@ "$THREADS" "$BAM_DIR/${sample_name}.${GENOME}.bam"
 done < "$filepairs"
 
 # ===== FEATURE COUNTS =====

@@ -111,11 +111,6 @@ fastqc -t "$THREADS" "$TRIM_DIR"/*.fastq.gz -o "$STATS_DIR/fastqc_trimmed"
 # ===== ALIGNMENT =====
 while IFS=";" read -r F1 F2; do
     BASE=$(basename "$F1" .fastq.gz)
-    if echo "$BASE" | grep -qP '_S[0-9]+'; then
-        SNUM=$(echo "$BASE" | grep -oP '_S[0-9]+' | sed 's/^_S//')
-    else
-        SNUM="NA"
-    fi
     SAMPLE=$(echo "$BASE" | sed -E "s/_S[0-9]+.*//")
     OUT_BAM="$BAM_DIR/${SAMPLE}.${GENOME}.bam"
 
@@ -129,7 +124,7 @@ while IFS=";" read -r F1 F2; do
     | samtools view -@ "$THREADS" -F 780 -f 2 -bh - \
     | samtools sort -@ "$THREADS" -T "${OUT_BAM%.bam}" \
     | samtools addreplacerg \
-        -r "@RG\tID:${SAMPLE}.${GENOME}\tSM:${SAMPLE}\tLB:${SAMPLE}\tPL:ILLUMINA\tPU:S${SNUM}" \
+        -r "@RG\tID:RG1\tSM:SampleName\tPL:Illumina\tLB:Library.fa" \
         -o "$OUT_BAM" -
     set +o pipefail
 done < "$filepairs"

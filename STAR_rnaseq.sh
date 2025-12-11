@@ -20,7 +20,7 @@ SAMPLE_ID=("HH4_anterior_ectoderm_RNA_1")
 case "$GENOME" in
   galgal6)
     GENOME_INDEX="/Data/GENOMES/GallusGallus/galgal6/star_index_76bp/"
-    ANNOTATION="/Data/GENOMES/GallusGallus/galgal6/galGal6.refGene.gtf"
+    ANNOTATION="/Data/GENOMES/GallusGallus/galgal6/galGal6.ncbiRefSeq.gtf"
     ;;
   hg38)
     GENOME_INDEX="/Data/GENOMES/HomoSapiens/hg38.p14/star_index/"
@@ -113,14 +113,31 @@ while IFS=";" read -r F1 F2; do
       --sjdbGTFfile "$ANNOTATION" \
       --outSAMtype BAM SortedByCoordinate \
       --quantMode GeneCounts \
-      --outFileNamePrefix "$BAM_DIR/${sample_name}_"
-    
-    samtools index "$BAM_DIR/${sample_name}_Aligned.sortedByCoord.out.bam"
+      --outFileNamePrefix "$BAM_DIR/${sample_name}.${GENOME}_"
+
+    samtools index "$BAM_DIR/${sample_name}.${GENOME}_Aligned.sortedByCoord.out.bam"
 done < "$filepairs"
 
+# ===== FEATURE COUNTS =====
+for sample in "$BAM_DIR"/*.bam; do
+    base=$(basename "$sample" .bam)
+    echo "[featureCounts] Counting for $base..."
+    featureCounts \
+        -T "$THREADS" \
+        -t exon \
+        -s 2 \
+        -g gene_id \
+        -a "$ANNOTATION" \
+        -o "$COUNTS_DIR/${base}_featureCounts.txt" \
+        -p "$sample"
+done
 
-# ===== CLEAN INTERMEDIATES =====
-echo "[Cleanup] Removing intermediate files..."
+# ===== CLEANUP (highly recommended) =====
 rm -rf "$TRIM_DIR"
+find "$BAM_DIR" -type f -name "*Aligned.toTranscriptome.out.bam" -delete
+find "$BAM_DIR" -type f -name "*Log.out" -delete
+find "$BAM_DIR" -type f -name "*Log.progress.out" -delete
+find "$BAM_DIR" -type f -name "*SJ.out.tab" -delete
+find "$BAM_DIR" -type d -name "*_STARgenome" -exec rm -rf {} +
 
 echo "Pipeline complete!"
