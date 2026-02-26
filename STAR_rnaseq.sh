@@ -129,7 +129,8 @@ for sample in "$BAM_DIR"/*.bam; do
         -g gene_id \
         -a "$ANNOTATION" \
         -o "$COUNTS_DIR/${base}_featureCounts.txt" \
-        -p "$sample"
+        -p "$sample" \
+	--countReadPairs
 done
 
 # ===== CLEANUP (highly recommended) =====
