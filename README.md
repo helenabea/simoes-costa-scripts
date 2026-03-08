@@ -26,6 +26,14 @@ Scripts for CUT&RUN data processing and alignment.
 
 ---
 
+## Usage
+
+1. Edit the **configuration section** at the top of the relevant script.
+2. Specify genome references and FASTQ inputs.
+3. Run the script from the command line.
+
+---
+
 ## Notes
 
 Each script contains a **configuration section** where users can specify:
@@ -50,14 +58,6 @@ Some dependencies include:
 - samtools
 - macs2
 - featureCounts
-
----
-
-## Usage
-
-1. Edit the **configuration section** at the top of the relevant script.
-2. Specify genome references and FASTQ inputs.
-3. Run the script from the command line.
 
 ---
 
