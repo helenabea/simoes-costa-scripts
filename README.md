@@ -34,17 +34,6 @@ Scripts for CUT&RUN data processing and alignment.
 
 ---
 
-## Notes
-
-Each script contains a **configuration section** where users can specify:
-
-- reference genome
-- annotation files
-- input FASTQ files
-- output directories
-
----
-
 ## Requirements
 
 These workflows assume a Linux environment with common bioinformatics tools installed.
