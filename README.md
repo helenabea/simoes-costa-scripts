@@ -11,8 +11,8 @@ The goal of this repository is to provide **transparent, easy-to-understand scri
 The repository currently provides scripts supporting the following workflows:
 
 - **RNA-seq** alignment and processing pipelines using:
- - **HISAT2**
- - **STAR**
+  - **HISAT2**
+  - **STAR**
 - **ATAC-seq** alignment and processing pipelines including peak calling.
 - **CUT&RUN** alignment and processing pipelines including peak calling.
 
