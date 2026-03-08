@@ -1,4 +1,4 @@
-# Core Infrastructure – Simoes-Costa Lab
+# Core Pipelines – Simoes-Costa Lab
 
 This repository contains core analysis scripts and computational utilities used in the Simoes-Costa Lab for the processing and analysis of next-generation sequencing (NGS) data.
 
@@ -10,19 +10,13 @@ The goal of this repository is to provide **transparent, easy-to-understand scri
 
 The repository currently provides scripts supporting the following workflows:
 
-### RNA-seq
-RNA-seq alignment and processing pipelines using:
+- **RNA-seq** alignment and processing pipelines using:
+ - **HISAT2**
+ - **STAR**
+- **ATAC-seq** alignment and processing pipelines including peak calling.
+- **CUT&RUN** alignment and processing pipelines including peak calling.
 
-- **HISAT2**
-- **STAR**
-
-Both paired-end and single-end configurations are supported.
-
-### ATAC-seq
-Basic processing workflow for ATAC-seq experiments including alignment and peak calling.
-
-### CUT&RUN
-Scripts for CUT&RUN data processing and alignment.
+Both paired-end and single-end configurations are supported for **RNA-seq**.
 
 ---
 
